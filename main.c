@@ -19,7 +19,7 @@ int main()
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  // SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
   // Double buffering
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // Use double buffering (0 to not use it)
@@ -44,7 +44,6 @@ int main()
   }
 
   glewExperimental = GL_TRUE;
-  glewInit();
   GLenum glewError = glewInit();
 
   if (glewError != GLEW_OK)
@@ -52,9 +51,13 @@ int main()
     printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
   }
 
+  GLuint vao;
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+
   SDL_Event event;
 
-  float vertices[] = {
+  GLfloat vertices[] = {
       0.0f, 0.5f,  // Vertex 1 (X, Y)
       0.5f, -0.5f, // Vertex 2 (X, Y)
       -0.5f, -0.5f // Vertex 3 (X, Y)
@@ -83,31 +86,43 @@ int main()
   glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
   glCompileShader(fragmentShader);
 
-  GLint status;
-  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
-  char buffer[512];
-  glGetShaderInfoLog(vertexShader, 512, NULL, buffer);
+  // GLint status;
+  // glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
+  // char buffer[512];
+  // glGetShaderInfoLog(vertexShader, 512, NULL, buffer);
 
-  GLint statusFrag;
-  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &statusFrag);
-  char bufferFrag[512];
-  glGetShaderInfoLog(fragmentShader, 512, NULL, bufferFrag);
+  // GLint statusFrag;
+  // glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &statusFrag);
+  // char bufferFrag[512];
+  // glGetShaderInfoLog(fragmentShader, 512, NULL, bufferFrag);
 
   GLuint shaderProgram = glCreateProgram();
   glAttachShader(shaderProgram, vertexShader);
   glAttachShader(shaderProgram, fragmentShader);
-
+  glBindFragDataLocation(shaderProgram, 0, "outColor");
   glLinkProgram(shaderProgram);
   glUseProgram(shaderProgram);
 
   GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
-  glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(posAttrib);
+  glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-  GLuint vao;
-  glGenVertexArrays(1, &vao);
+  // GLuint vao;
+  // glGenVertexArrays(1, &vao);
 
   // glDrawArrays(GL_TRIANGLES, 0, 3);
+
+  // // Clear the screen to black
+  // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  // glClear(GL_COLOR_BUFFER_BIT);
+
+  // // Draw a triangle from the 3 vertices
+  // glDrawArrays(GL_TRIANGLES, 0, 3);
+
+  // Swap buffers
+  // window.display();
+
+  SDL_GL_SwapWindow(window);
 
   while (true)
   {
@@ -125,11 +140,20 @@ int main()
     // Draw a triangle from the 3 vertices
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    // Swap buffers
-    // window.display();
-
-    SDL_GL_SwapWindow(window);
+    // glClear(GL_COLOR_BUFFER_BIT);
+    // glEnableVertexAttribArray(posAttrib);
+    // glDrawArrays(GL_TRIANGLES, 0, 3);
+    // glDisableVertexAttribArray(posAttrib);
+    // SDL_GL_SwapWindow(window);
   }
+
+  glDeleteProgram(shaderProgram);
+  glDeleteShader(fragmentShader);
+  glDeleteShader(vertexShader);
+
+  glDeleteBuffers(1, &vbo);
+
+  glDeleteVertexArrays(1, &vao);
 
   SDL_GL_DeleteContext(context);
   SDL_Quit();
