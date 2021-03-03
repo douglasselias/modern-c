@@ -52,13 +52,62 @@ int main()
     printf("Error initializing GLEW! %s\n", glewGetErrorString(glewError));
   }
 
-  // GLuint vertexBuffer;
-  // auto result = glGenBuffers(1, &vertexBuffer);
-  // glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  // printf("%u\n", vertexBuffer);
-
   SDL_Event event;
+
+  float vertices[] = {
+      0.0f, 0.5f,  // Vertex 1 (X, Y)
+      0.5f, -0.5f, // Vertex 2 (X, Y)
+      -0.5f, -0.5f // Vertex 3 (X, Y)
+  };
+
+  GLuint vbo;
+  glGenBuffers(1, &vbo); // Generate 1 buffer
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  const GLchar *vertexSource = "#version 150 core\
+        in vec2 position;\
+        void main()\
+        {   gl_Position = vec4(position, 0.0, 1.0);}";
+
+  const GLchar *fragmentSource = "#version 150 core\
+        out vec4 outColor;\
+        void main()\
+        {outColor = vec4(1.0, 1.0, 1.0, 1.0);}";
+
+  GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertexShader, 1, &vertexSource, NULL);
+  glCompileShader(vertexShader);
+
+  GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
+  glCompileShader(fragmentShader);
+
+  GLint status;
+  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
+  char buffer[512];
+  glGetShaderInfoLog(vertexShader, 512, NULL, buffer);
+
+  GLint statusFrag;
+  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &statusFrag);
+  char bufferFrag[512];
+  glGetShaderInfoLog(fragmentShader, 512, NULL, bufferFrag);
+
+  GLuint shaderProgram = glCreateProgram();
+  glAttachShader(shaderProgram, vertexShader);
+  glAttachShader(shaderProgram, fragmentShader);
+
+  glLinkProgram(shaderProgram);
+  glUseProgram(shaderProgram);
+
+  GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
+  glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(posAttrib);
+
+  GLuint vao;
+  glGenVertexArrays(1, &vao);
+
+  // glDrawArrays(GL_TRIANGLES, 0, 3);
 
   while (true)
   {
@@ -68,6 +117,16 @@ int main()
       if (event.type == SDL_QUIT)
         break;
     }
+
+    // Clear the screen to black
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Draw a triangle from the 3 vertices
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    // Swap buffers
+    // window.display();
 
     SDL_GL_SwapWindow(window);
   }

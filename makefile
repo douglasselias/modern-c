@@ -5,7 +5,7 @@ glewFlags=-DGLEW_STATIC -lGLEW -lGLU -lGL
 errorFlags=-Werror
 
 make:
-	gcc ${FILE}.c -o ${FILE} $(sdlFlags) $(glewFlags)
+	clear && gcc ${FILE}.c -o ${FILE} $(sdlFlags) $(glewFlags)
 
 run:
 	clear && ./main
